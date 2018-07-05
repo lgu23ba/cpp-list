@@ -86,28 +86,24 @@ public:
 	// return  True if addition was successful, or false if not.
 	bool add(T newEntry)
 	{
-		bool addNewEntry;
-		Node<T>* temp = new Node<T>(newEntry, nullptr);
-		if (this->head == nullptr)
+		if (search(newEntry))
+		{
+			return false;
+		}
+
+		Node<T>* temp = new Node<T>(newEntry);
+		if (isEmpty())
 		{
 			this->head = temp;
 			this->tail = temp;
-		}
-		else
-		{
-			this->tail->next = temp;
-			this->tail = temp;
+			itemCount++;
+			return true;
 		}
 
-		addNewEntry = true;
+		this->tail->next = temp;
+		this->tail = temp;
 		itemCount++;
-
-		if (this->head == temp)
-		{
-			addNewEntry = false;
-		}
-
-		return addNewEntry;
+		return true;
 	}
 
 	// Searches for anEntry in the list
@@ -134,66 +130,72 @@ public:
 	// return  True if removal was successful, or false if not.
 	bool remove(T anEntry)
 	{
-		bool removeAnEntry;
-
-		if (search(anEntry) == false)
-		{
-			//cout << anEntry << " is not found in the list." << endl;
-			removeAnEntry = false;
-		}
-
 		Node<T>* temp = this->head;
-		Node<T>* temp2;
+
+		if (isEmpty())
+		{
+			return false;
+		}
 
 		if (this->head->item == anEntry)
 		{
 			this->head = this->head->next;
+			if (this->head == nullptr)
+			{
+				this->tail = nullptr;
+			}
 			delete temp;
 			itemCount--;
-			removeAnEntry = true;
+			return true;
 		}
-		else
+
+		while (temp->next != nullptr && temp->next->item != anEntry)
 		{
-			while (temp->next->item != anEntry)
-			{
-				temp = temp->next;
-			}
-			temp2 = temp->next;
-			temp->next = temp2->next;
-			delete temp2;
-			itemCount--;
-			removeAnEntry = true;
+			temp = temp->next;
 		}
-		return removeAnEntry;
+
+		if (temp->next == nullptr)
+		{
+			return false;
+		}
+
+		Node<T>* temp2 = temp->next;
+		temp->next = temp2->next;
+		delete temp2;
+
+		if (temp->next == nullptr)
+		{
+			this->tail = temp;
+		}
+		itemCount--;
+		return true;
 	}
 
 // Removes all entries from this list.
 // post  List contains no items, and the count of items is 0.
 	void clear()
 	{
-		Node<T>*temp;
-		Node<T>*temp2;
-		temp = this->head;
-
-		while (temp != nullptr)
+		while (this->head != nullptr)
 		{
-			temp2 = temp;
-			temp = temp->next;
-			delete temp2;
+			Node<T>*temp = this->head;
+			this->head = this->head->next;
+			delete temp;
 			itemCount--;
 		}
+		this->head = nullptr;
+		this->tail = nullptr;
 	}
 
 	friend ostream& operator<<(ostream& out, const List<T>& linkedList)
 	{
-		Node<T>*temp;
-		temp = linkedList.head;
+		Node<T>*temp = linkedList.head;
 
 		while(temp != nullptr)
 		{
 			out << temp->item << " ";
 			temp = temp->next;
 		}
+		cout << endl;
 		return out;
 	}
 
@@ -202,15 +204,14 @@ public:
 		return itemCount;
 	}
 
-	void fileAdded()
+	void creatListFromFile(const string &fileName)
 	{
-		string inputFile = "Words.txt";
 		ifstream ifs;
-		ifs.open(inputFile);
+		ifs.open(fileName);
 
 		if (!ifs.good())
 		{
-			cout << "Unable to open: " << inputFile << endl;
+			cout << "Unable to open: " << fileName << endl;
 		}
 
 		cout << "Creating a list by adding the items:" << endl;
@@ -227,12 +228,12 @@ public:
 
 int main()
 {
-	List<string> L;
-	L.fileAdded();
-    cout << L;
+	List<string> linkedList;
 
-    cout << endl;
-	if (!L.isEmpty())
+	linkedList.creatListFromFile( "Words.txt");
+    cout << linkedList;
+
+	if (!linkedList.isEmpty())
 	{
 		cout << "The linked list is not empty." << endl;
 	}
@@ -244,13 +245,13 @@ int main()
 	cout << "Enter a word and try to find it in this linked list: ";
 	string word;
 	cin >> word;
-    if (L.search(word) != 0)
+    if (linkedList.search(word) != 0)
     {
     	cout << "Founded." << endl;
     	cout << "Let's remove it from the linked list: " << endl;
-    	if (L.remove(word) != 0)
+    	if (linkedList.remove(word) != 0)
     	{
-    	    cout << word <<" has been removed and the number of the items is " << L.lengthOfList() << "." << endl;
+    	    cout << word <<" has been removed and the number of the items is " << linkedList.lengthOfList() << "." << endl;
     	}
     	/*
     	else
@@ -265,9 +266,9 @@ int main()
     }
 
     cout << "Now clear the linked list." << endl;
-    L.clear();
+    linkedList.clear();
 
-    cout << "The number of items in linked list is: " << L.lengthOfList() << endl;
+    cout << "The number of items in linked list is: " << linkedList.lengthOfList() << endl;
     //cout << L;
 
 	return 0;
